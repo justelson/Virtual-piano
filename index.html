@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Piano (C3-G5) - Press keys to play</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0E0E10 0%, #1A1A1F 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #E0E0E0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+            font-weight: 300;
+            background: linear-gradient(45deg, #A8C5E5, #E0E0E0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            margin: 0;
+            color: #888888;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 20px;
+            flex-wrap: wrap;
+            background: rgba(40, 40, 40, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(190, 190, 190, 0.1);
+        }
+
+        .octave-btn {
+            background: linear-gradient(145deg, #3A3A3A, #2A2A2A);
+            color: #E0E0E0;
+            border: 1px solid #555555;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .octave-btn:hover {
+            background: linear-gradient(145deg, #4A4A4A, #3A3A3A);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .octave-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .volume-slider {
+            width: 100px;
+            height: 4px;
+            background: #555555;
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #A8C5E5;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #A8C5E5;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+
+
+        .octave-label {
+            font-size: 16px;
+            font-weight: 500;
+            padding: 8px 16px;
+            background: rgba(168, 197, 229, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(168, 197, 229, 0.3);
+        }
+
+        .piano-container {
+            background: linear-gradient(145deg, #282828, #1F1F1F);
+            padding: 15px;
+            border-radius: 15px;
+            position: relative;
+            height: 300px;
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(190, 190, 190, 0.1);
+        }
+
+        .piano-key {
+            position: absolute;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            font-weight: 600;
+            font-size: 11px;
+            transition: all 0.1s ease;
+        }
+
+        .white-key {
+            background: linear-gradient(180deg, #F5F5F5 0%, #E0E0E0 100%);
+            border: 1px solid #BEBEBE;
+            color: #333333;
+            height: 270px;
+            border-radius: 0 0 8px 8px;
+            box-shadow:
+                0 2px 4px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .white-key:hover {
+            background: linear-gradient(180deg, #EEEEEE 0%, #D0D0D0 100%);
+            transform: translateY(1px);
+        }
+
+        .white-key.pressed {
+            background: linear-gradient(180deg, #A8C5E5 0%, #8BB3D9 100%);
+            transform: translateY(2px);
+            box-shadow:
+                0 1px 2px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .black-key {
+            background: linear-gradient(180deg, #4A4A4A 0%, #2A2A2A 100%);
+            border: 1px solid #202020;
+            color: #E0E0E0;
+            height: 170px;
+            z-index: 10;
+            border-radius: 0 0 6px 6px;
+            box-shadow:
+                0 3px 6px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .black-key:hover {
+            background: linear-gradient(180deg, #5A5A5A 0%, #3A3A3A 100%);
+            transform: translateY(1px);
+        }
+
+        .black-key.pressed {
+            background: linear-gradient(180deg, #586575 0%, #485565 100%);
+            transform: translateY(2px);
+            box-shadow:
+                0 1px 3px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .key-label {
+            margin-bottom: 10px;
+            font-size: 12px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .octave-label-key {
+            margin-bottom: 6px;
+            font-size: 10px;
+            color: #888888;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .instructions {
+            margin-top: 30px;
+            text-align: center;
+            color: #AAAAAA;
+            background: rgba(40, 40, 40, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(190, 190, 190, 0.1);
+        }
+
+        .instructions h3 {
+            margin: 0 0 15px 0;
+            color: #E0E0E0;
+            font-size: 1.2em;
+        }
+
+        .key-mapping {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .key-group {
+            background: rgba(60, 60, 60, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(190, 190, 190, 0.1);
+        }
+
+        .key-group h4 {
+            margin: 0 0 10px 0;
+            color: #A8C5E5;
+            font-size: 0.9em;
+        }
+
+        .key-group p {
+            margin: 5px 0;
+            font-size: 0.85em;
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 768px) {
+            .piano-container {
+                height: 250px;
+            }
+
+            .white-key {
+                height: 220px;
+            }
+
+            .black-key {
+                height: 140px;
+            }
+
+            .key-label {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Virtual Piano</h1>
+            <p>Professional piano experience in your browser</p>
+        </div>
+
+        <div class="controls">
+            <button class="octave-btn" id="octave-down">Octave -</button>
+            <span class="octave-label" id="octave-label">Octave shift: +0</span>
+            <button class="octave-btn" id="octave-up">Octave +</button>
+
+            <div class="volume-control">
+                <span>Volume:</span>
+                <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="70">
+                <span id="volume-display">70%</span>
+            </div>
+        </div>
+
+        <div class="piano-container" id="piano-container">
+            <!-- Piano keys will be generated here -->
+        </div>
+
+        <div class="instructions">
+            <h3>How to Play</h3>
+            <p>Use your keyboard or click the keys to play. Arrow keys ↑/↓ change octave.</p>
+
+            <div class="key-mapping">
+                <div class="key-group">
+                    <h4>White Keys (Lower)</h4>
+                    <p>Z X C V B N M</p>
+                    <p>, . / Q W E R</p>
+                </div>
+                <div class="key-group">
+                    <h4>White Keys (Upper)</h4>
+                    <p>T Y U I O P</p>
+                </div>
+                <div class="key-group">
+                    <h4>Black Keys</h4>
+                    <p>S D G H J L</p>
+                    <p>1 3 4 5 7 8 0</p>
+                </div>
+                <div class="key-group">
+                    <h4>Controls</h4>
+                    <p>↑/↓ - Change octave</p>
+                    <p>Volume slider - Adjust sound</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="piano.js"></script>
+</body>
+
+</html>

@@ -1,7 +1,12 @@
 # 🎹 Virtual Piano
 
 A professional-grade virtual piano application built with HTML5, CSS3, and JavaScript. Experience realistic piano sounds with multiple harmonics, octave-dependent characteristics, and a beautiful modern interface.
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/0ad8ee75-4ff0-4edb-8c2c-a620025089e9" />
+
+![Virtual Piano Screenshot](https://img.shields.io/badge/Status-Complete-brightgreen)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
+![Web Audio API](https://img.shields.io/badge/Web%20Audio%20API-FF6B35?logo=webaudio&logoColor=white)
 
 ## ✨ Features
 
