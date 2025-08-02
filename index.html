@@ -215,6 +215,187 @@
             opacity: 0.8;
         }
 
+        .chord-progressions {
+            margin-top: 30px;
+            background: rgba(40, 40, 40, 0.8);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(190, 190, 190, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .chord-progressions h3 {
+            margin: 0 0 15px 0;
+            color: #E0E0E0;
+            font-size: 1.4em;
+            text-align: center;
+            background: linear-gradient(45deg, #A8C5E5, #E0E0E0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .chord-progressions>p {
+            text-align: center;
+            color: #AAAAAA;
+            margin-bottom: 25px;
+        }
+
+        .genre-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .genre-tab {
+            background: linear-gradient(145deg, #3A3A3A, #2A2A2A);
+            color: #E0E0E0;
+            border: 1px solid #555555;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .genre-tab:hover {
+            background: linear-gradient(145deg, #4A4A4A, #3A3A3A);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .genre-tab.active {
+            background: linear-gradient(145deg, #A8C5E5, #8BB3D9);
+            color: #1A1A1F;
+            border-color: #A8C5E5;
+            box-shadow: 0 4px 12px rgba(168, 197, 229, 0.3);
+        }
+
+        .progressions-container {
+            position: relative;
+        }
+
+        .genre-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .genre-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .progression-item {
+            background: rgba(60, 60, 60, 0.6);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(190, 190, 190, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progression-item:hover {
+            background: rgba(70, 70, 70, 0.8);
+            border-color: rgba(168, 197, 229, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .progression-item.active {
+            background: rgba(168, 197, 229, 0.15);
+            border-color: #A8C5E5;
+            box-shadow: 0 6px 20px rgba(168, 197, 229, 0.2);
+        }
+
+        .progression-item h4 {
+            margin: 0 0 10px 0;
+            color: #A8C5E5;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .progression-item p {
+            margin: 0 0 12px 0;
+            color: #CCCCCC;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .chord-keys {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #888888;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #A8C5E5;
+        }
+
+        .progression-item::before {
+            content: '♪';
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5em;
+            color: rgba(168, 197, 229, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .progression-item:hover::before {
+            color: rgba(168, 197, 229, 0.6);
+            transform: scale(1.2);
+        }
+
+        .progression-item.active::before {
+            color: #A8C5E5;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        .highlighted-key {
+            box-shadow: 0 0 15px rgba(168, 197, 229, 0.8) !important;
+            border-color: #A8C5E5 !important;
+        }
+
+        .white-key.highlighted-key {
+            background: linear-gradient(180deg, #E8F4FD 0%, #D0E8F7 100%) !important;
+        }
+
+        .black-key.highlighted-key {
+            background: linear-gradient(180deg, #7A9BB8 0%, #5A7B98 100%) !important;
+        }
+
         .instructions {
             margin-top: 30px;
             text-align: center;
@@ -273,6 +454,41 @@
             .key-label {
                 font-size: 10px;
             }
+
+            .genre-tabs {
+                gap: 5px;
+            }
+
+            .genre-tab {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .chord-progressions {
+                padding: 15px;
+            }
+
+            .progression-item {
+                padding: 15px;
+            }
+
+            .progression-item h4 {
+                font-size: 1em;
+            }
+
+            .chord-keys {
+                font-size: 0.75em;
+                padding: 6px 8px;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .volume-control {
+                order: -1;
+            }
         }
     </style>
 </head>
@@ -294,41 +510,171 @@
                 <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="70">
                 <span id="volume-display">70%</span>
             </div>
+
+            <button class="octave-btn" id="clear-chords">Clear Highlights</button>
         </div>
 
         <div class="piano-container" id="piano-container">
             <!-- Piano keys will be generated here -->
         </div>
 
-        <div class="instructions">
-            <h3>How to Play</h3>
-            <p>Use your keyboard or click the keys to play. Arrow keys ↑/↓ change octave.</p>
+        <div class="chord-progressions">
+            <h3>Chord Progressions by Genre</h3>
+            <p>Learn popular chord progressions for different musical styles. Click on a progression to highlight the
+                keys!</p>
 
-            <div class="key-mapping">
-                <div class="key-group">
-                    <h4>White Keys (Lower)</h4>
-                    <p>Z X C V B N M</p>
-                    <p>, . / Q W E R</p>
+            <div class="genre-tabs">
+                <button class="genre-tab active" data-genre="pop">Pop</button>
+                <button class="genre-tab" data-genre="jazz">Jazz</button>
+                <button class="genre-tab" data-genre="blues">Blues</button>
+                <button class="genre-tab" data-genre="rock">Rock</button>
+                <button class="genre-tab" data-genre="classical">Classical</button>
+                <button class="genre-tab" data-genre="country">Country</button>
+            </div>
+
+            <div class="progressions-container">
+                <div class="genre-content active" data-genre="pop">
+                    <div class="progression-item" data-chords='["C", "Am", "F", "G"]'>
+                        <h4>I-vi-IV-V (C-Am-F-G)</h4>
+                        <p>The most popular pop progression. Used in countless hits like "Let It Be", "Don't Stop
+                            Believin'"</p>
+                        <div class="chord-keys">C: Z-C-B | Am: N-,-/ | F: V-N-, | G: B-M-.</div>
+                    </div>
+                    <div class="progression-item" data-chords='["C", "G", "Am", "F"]'>
+                        <h4>I-V-vi-IV (C-G-Am-F)</h4>
+                        <p>Another mega-hit progression. Found in "Someone Like You", "With or Without You"</p>
+                        <div class="chord-keys">C: Z-C-B | G: B-M-. | Am: N-,-/ | F: V-N-,</div>
+                    </div>
+                    <div class="progression-item" data-chords='["Am", "F", "C", "G"]'>
+                        <h4>vi-IV-I-V (Am-F-C-G)</h4>
+                        <p>Emotional and powerful. Used in "Complicated", "Basket Case"</p>
+                        <div class="chord-keys">Am: N-,-/ | F: V-N-, | C: Z-C-B | G: B-M-.</div>
+                    </div>
                 </div>
-                <div class="key-group">
-                    <h4>White Keys (Upper)</h4>
-                    <p>T Y U I O P</p>
+
+                <div class="genre-content" data-genre="jazz">
+                    <div class="progression-item" data-chords='["Cmaj7", "Am7", "Dm7", "G7"]'>
+                        <h4>I-vi-ii-V7 (Cmaj7-Am7-Dm7-G7)</h4>
+                        <p>The foundation of jazz harmony. Essential for standards like "Autumn Leaves"</p>
+                        <div class="chord-keys">Cmaj7: Z-C-B-M | Am7: N-,-/-E | Dm7: X-V-N-, | G7: B-M-.-W</div>
+                    </div>
+                    <div class="progression-item" data-chords='["Cmaj7", "C7", "Fmaj7", "Fm7"]'>
+                        <h4>I-I7-IV-iv (Cmaj7-C7-Fmaj7-Fm7)</h4>
+                        <p>Sophisticated jazz movement. Creates beautiful harmonic motion</p>
+                        <div class="chord-keys">Cmaj7: Z-C-B-M | C7: Z-C-B-J | Fmaj7: V-N-,-/ | Fm7: V-H-,-1</div>
+                    </div>
+                    <div class="progression-item" data-chords='["Am7", "D7", "Gmaj7", "Cmaj7"]'>
+                        <h4>ii-V-I-vi (Am7-D7-Gmaj7-Cmaj7)</h4>
+                        <p>Classic jazz turnaround. Perfect for improvisation practice</p>
+                        <div class="chord-keys">Am7: N-,-/-E | D7: X-G-N-, | Gmaj7: B-M-.-3 | Cmaj7: Z-C-B-M</div>
+                    </div>
                 </div>
-                <div class="key-group">
-                    <h4>Black Keys</h4>
-                    <p>S D G H J L</p>
-                    <p>1 3 4 5 7 8 0</p>
+
+                <div class="genre-content" data-genre="blues">
+                    <div class="progression-item"
+                        data-chords='["C7", "C7", "C7", "C7", "F7", "F7", "C7", "C7", "G7", "F7", "C7", "G7"]'>
+                        <h4>12-Bar Blues (C7-F7-G7)</h4>
+                        <p>The backbone of blues music. Master this and you can play with any blues band</p>
+                        <div class="chord-keys">C7: Z-C-B-J | F7: V-N-,-1 | G7: B-M-.-W</div>
+                    </div>
+                    <div class="progression-item" data-chords='["C7", "F7", "C7", "G7"]'>
+                        <h4>Quick Change Blues</h4>
+                        <p>Simplified blues progression for beginners</p>
+                        <div class="chord-keys">C7: Z-C-B-J | F7: V-N-,-1 | G7: B-M-.-W</div>
+                    </div>
+                    <div class="progression-item"
+                        data-chords='["Am", "Am", "Am", "Am", "Dm", "Dm", "Am", "Am", "E7", "Dm", "Am", "E7"]'>
+                        <h4>Minor Blues (Am-Dm-E7)</h4>
+                        <p>Darker, more emotional blues progression</p>
+                        <div class="chord-keys">Am: N-,-/ | Dm: X-V-N | E7: C-H-M-.</div>
+                    </div>
                 </div>
-                <div class="key-group">
-                    <h4>Controls</h4>
-                    <p>↑/↓ - Change octave</p>
-                    <p>Volume slider - Adjust sound</p>
+
+                <div class="genre-content" data-genre="rock">
+                    <div class="progression-item" data-chords='["C", "Bb", "F", "C"]'>
+                        <h4>I-bVII-IV-I (C-Bb-F-C)</h4>
+                        <p>Classic rock progression. Used in "Sweet Child O' Mine", "Wonderwall"</p>
+                        <div class="chord-keys">C: Z-C-B | Bb: J-.-W | F: V-N-,</div>
+                    </div>
+                    <div class="progression-item" data-chords='["Am", "C", "D", "F"]'>
+                        <h4>vi-I-II-IV (Am-C-D-F)</h4>
+                        <p>Powerful rock progression with major II chord</p>
+                        <div class="chord-keys">Am: N-,-/ | C: Z-C-B | D: X-G-N | F: V-N-,</div>
+                    </div>
+                    <div class="progression-item" data-chords='["C", "F", "G", "C"]'>
+                        <h4>I-IV-V-I (C-F-G-C)</h4>
+                        <p>The three-chord trick. Foundation of rock and roll</p>
+                        <div class="chord-keys">C: Z-C-B | F: V-N-, | G: B-M-.</div>
+                    </div>
+                </div>
+
+                <div class="genre-content" data-genre="classical">
+                    <div class="progression-item" data-chords='["C", "Am", "Dm", "G"]'>
+                        <h4>I-vi-ii-V (C-Am-Dm-G)</h4>
+                        <p>Classical circle of fifths progression. Found in Bach, Mozart</p>
+                        <div class="chord-keys">C: Z-C-B | Am: N-,-/ | Dm: X-V-N | G: B-M-.</div>
+                    </div>
+                    <div class="progression-item" data-chords='["C", "F", "Dm", "G"]'>
+                        <h4>I-IV-ii-V (C-F-Dm-G)</h4>
+                        <p>Elegant classical movement with subdominant preparation</p>
+                        <div class="chord-keys">C: Z-C-B | F: V-N-, | Dm: X-V-N | G: B-M-.</div>
+                    </div>
+                    <div class="progression-item" data-chords='["Am", "Dm", "G", "C"]'>
+                        <h4>vi-ii-V-I (Am-Dm-G-C)</h4>
+                        <p>Classical cadential progression leading to resolution</p>
+                        <div class="chord-keys">Am: N-,-/ | Dm: X-V-N | G: B-M-. | C: Z-C-B</div>
+                    </div>
+                </div>
+
+                <div class="genre-content" data-genre="country">
+                    <div class="progression-item"
+                        data-chords='["C", "C", "F", "C", "C", "C", "G", "G", "C", "F", "C", "G"]'>
+                        <h4>Country I-IV-V (C-F-G)</h4>
+                        <p>Traditional country progression. Simple but effective</p>
+                        <div class="chord-keys">C: Z-C-B | F: V-N-, | G: B-M-.</div>
+                    </div>
+                    <div class="progression-item" data-chords='["C", "Am", "F", "G"]'>
+                        <h4>Country Pop (C-Am-F-G)</h4>
+                        <p>Modern country-pop crossover progression</p>
+                        <div class="chord-keys">C: Z-C-B | Am: N-,-/ | F: V-N-, | G: B-M-.</div>
+                    </div>
+                    <div class="progression-item" data-chords='["C", "F", "Am", "G"]'>
+                        <h4>Nashville Number (I-IV-vi-V)</h4>
+                        <p>Studio musicians' favorite. Versatile and singable</p>
+                        <div class="chord-keys">C: Z-C-B | F: V-N-, | Am: N-,-/ | G: B-M-.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3>How to Play</h3>
+                <p>Use your keyboard or click the keys to play. Arrow keys ↑/↓ change octave.</p>
+
+                <div class="key-mapping">
+                    <div class="key-group">
+                        <h4>White Keys (Lower)</h4>
+                        <p>Z X C V B N M</p>
+                        <p>, . / Q W E R</p>
+                    </div>
+                    <div class="key-group">
+                        <h4>White Keys (Upper)</h4>
+                        <p>T Y U I O P</p>
+                    </div>
+                    <div class="key-group">
+                        <h4>Black Keys</h4>
+                        <p>S D G H J L</p>
+                        <p>1 3 4 5 7 8 0</p>
+                    </div>
+                    <div class="key-group">
+                        <h4>Controls</h4>
+                        <p>↑/↓ - Change octave</p>
+                        <p>Volume slider - Adjust sound</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script src="piano.js"></script>
+        <script src="piano.js"></script>
 </body>
 
 </html>

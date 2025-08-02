@@ -47,11 +47,14 @@ class PianoApp {
         this.pressedKeys = new Set();
         this.mousePressed = false;
         this.masterGainNode = null;
+        this.highlightedKeys = new Set();
+        this.currentProgression = null;
         
         this.initAudio();
         this.setupEventListeners();
         this.renderPiano();
         this.updateOctaveLabel();
+        this.setupChordProgressions();
         this.showWelcomeMessage();
     }
 
@@ -79,6 +82,12 @@ class PianoApp {
         document.getElementById('octave-down').addEventListener('click', () => this.lowerOctave());
         document.getElementById('octave-up').addEventListener('click', () => this.raiseOctave());
         
+        // Clear chord highlights
+        document.getElementById('clear-chords').addEventListener('click', () => {
+            this.clearProgressionHighlight();
+            this.showNotification('Chord highlights cleared', 'info', 1500);
+        });
+        
         // Volume control
         const volumeSlider = document.getElementById('volume-slider');
         const volumeDisplay = document.getElementById('volume-display');
@@ -104,6 +113,151 @@ class PianoApp {
                 e.preventDefault();
             }
         });
+    }
+
+    setupChordProgressions() {
+        // Genre tab switching
+        const genreTabs = document.querySelectorAll('.genre-tab');
+        const genreContents = document.querySelectorAll('.genre-content');
+        
+        genreTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                genreTabs.forEach(t => t.classList.remove('active'));
+                genreContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                const genre = tab.dataset.genre;
+                document.querySelector(`[data-genre="${genre}"].genre-content`).classList.add('active');
+                
+                // Clear any active progression
+                this.clearProgressionHighlight();
+            });
+        });
+
+        // Progression item clicking
+        const progressionItems = document.querySelectorAll('.progression-item');
+        progressionItems.forEach(item => {
+            item.addEventListener('click', () => {
+                this.handleProgressionClick(item);
+            });
+        });
+    }
+
+    handleProgressionClick(item) {
+        // Clear previous highlights
+        this.clearProgressionHighlight();
+        
+        // Remove active class from all progression items
+        document.querySelectorAll('.progression-item').forEach(p => p.classList.remove('active'));
+        
+        // Add active class to clicked item
+        item.classList.add('active');
+        
+        // Get chord data
+        const chords = JSON.parse(item.dataset.chords);
+        this.currentProgression = chords;
+        
+        // Highlight chord keys
+        this.highlightChordProgression(chords);
+        
+        // Show notification
+        const progressionName = item.querySelector('h4').textContent;
+        this.showNotification(`Highlighting: ${progressionName}`, 'info', 3000);
+    }
+
+    highlightChordProgression(chords) {
+        const chordNotes = this.getChordsNotes(chords);
+        
+        chordNotes.forEach(note => {
+            const keyElement = document.querySelector(`[data-note="${note}"]`);
+            if (keyElement) {
+                keyElement.classList.add('highlighted-key');
+                this.highlightedKeys.add(note);
+            }
+        });
+    }
+
+    clearProgressionHighlight() {
+        this.highlightedKeys.forEach(note => {
+            const keyElement = document.querySelector(`[data-note="${note}"]`);
+            if (keyElement) {
+                keyElement.classList.remove('highlighted-key');
+            }
+        });
+        this.highlightedKeys.clear();
+        this.currentProgression = null;
+        
+        // Remove active class from all progression items
+        document.querySelectorAll('.progression-item').forEach(p => p.classList.remove('active'));
+    }
+
+    getChordsNotes(chords) {
+        // Based on your piano layout: C3-G5 with specific key mappings
+        const chordDefinitions = {
+            // Major chords - optimized for your piano range
+            'C': ['C3', 'E3', 'G3'],           // Z, C, B keys
+            'D': ['D3', 'F#3', 'A3'],          // X, G, N keys  
+            'E': ['E3', 'G#3', 'B3'],          // C, H, M keys
+            'F': ['F3', 'A3', 'C4'],           // V, N, , keys
+            'G': ['G3', 'B3', 'D4'],           // B, M, . keys
+            'A': ['A3', 'C#4', 'E4'],          // N, L, / keys
+            'B': ['B3', 'D#4', 'F#4'],         // M, 1, 3 keys
+            'Bb': ['A#3', 'D4', 'F4'],         // J, ., W keys
+            
+            // Minor chords
+            'Am': ['A3', 'C4', 'E4'],          // N, ,, / keys
+            'Bm': ['B3', 'D4', 'F#4'],         // M, ., 3 keys
+            'Cm': ['C3', 'D#3', 'G3'],         // Z, D, B keys
+            'Dm': ['D3', 'F3', 'A3'],          // X, V, N keys
+            'Em': ['E3', 'G3', 'B3'],          // C, B, M keys
+            'Fm': ['F3', 'G#3', 'C4'],         // V, H, , keys
+            'Gm': ['G3', 'A#3', 'D4'],         // B, J, . keys
+            
+            // Seventh chords
+            'C7': ['C3', 'E3', 'G3', 'A#3'],   // Z, C, B, J keys
+            'D7': ['D3', 'F#3', 'A3', 'C4'],   // X, G, N, , keys
+            'E7': ['E3', 'G#3', 'B3', 'D4'],   // C, H, M, . keys
+            'F7': ['F3', 'A3', 'C4', 'D#4'],   // V, N, ,, 1 keys
+            'G7': ['G3', 'B3', 'D4', 'F4'],    // B, M, ., W keys
+            'A7': ['A3', 'C#4', 'E4', 'G4'],   // N, L, /, E keys
+            'B7': ['B3', 'D#4', 'F#4', 'A4'],  // M, 1, 3, R keys
+            
+            // Major seventh chords
+            'Cmaj7': ['C3', 'E3', 'G3', 'B3'],    // Z, C, B, M keys
+            'Dmaj7': ['D3', 'F#3', 'A3', 'C#4'],  // X, G, N, L keys
+            'Emaj7': ['E3', 'G#3', 'B3', 'D#4'],  // C, H, M, 1 keys
+            'Fmaj7': ['F3', 'A3', 'C4', 'E4'],    // V, N, ,, / keys
+            'Gmaj7': ['G3', 'B3', 'D4', 'F#4'],   // B, M, ., 3 keys
+            'Amaj7': ['A3', 'C#4', 'E4', 'G#4'],  // N, L, /, 4 keys
+            'Bmaj7': ['B3', 'D#4', 'F#4', 'A#4'], // M, 1, 3, 5 keys
+            
+            // Minor seventh chords
+            'Am7': ['A3', 'C4', 'E4', 'G4'],      // N, ,, /, E keys
+            'Bm7': ['B3', 'D4', 'F#4', 'A4'],     // M, ., 3, R keys
+            'Cm7': ['C3', 'D#3', 'G3', 'A#3'],    // Z, D, B, J keys
+            'Dm7': ['D3', 'F3', 'A3', 'C4'],      // X, V, N, , keys
+            'Em7': ['E3', 'G3', 'B3', 'D4'],      // C, B, M, . keys
+            'Fm7': ['F3', 'G#3', 'C4', 'D#4'],    // V, H, ,, 1 keys
+            'Gm7': ['G3', 'A#3', 'D4', 'F4']      // B, J, ., W keys
+        };
+        
+        const allNotes = new Set();
+        
+        chords.forEach(chord => {
+            const notes = chordDefinitions[chord];
+            if (notes) {
+                notes.forEach(note => {
+                    // Only add notes that exist in your piano range
+                    if (PIANO_NOTES_IN_ORDER.includes(note)) {
+                        allNotes.add(note);
+                    }
+                });
+            }
+        });
+        
+        return Array.from(allNotes);
     }
 
     renderPiano() {
