@@ -1,11 +1,17 @@
-// Piano configuration
-const PIANO_NOTES_IN_ORDER = [
-    // Octave 3
-    'C3', 'C#3', 'D3', 'D#3', 'E3', 'F3', 'F#3', 'G3', 'G#3', 'A3', 'A#3', 'B3',
-    // Octave 4
-    'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4',
-    // Octave 5
-    'C5', 'C#5', 'D5', 'D#5', 'E5', 'F5', 'F#5', 'G5'
+// Piano configuration (full range C2–C7; we will show only a window)
+const PIANO_NOTES_IN_ORDER = (() => {
+    const order = [];
+    const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    for (let octave = 2; octave <= 7; octave++) {
+        for (const n of names) order.push(`${n}${octave}`);
+    }
+    return order;
+})();
+
+// Keyboard order (left-to-right) matching the UI layout like index2
+const KEY_ORDER_LEFT_TO_RIGHT = [
+    // white/black interleaved from C up
+    'KeyZ','KeyS','KeyX','KeyD','KeyC','KeyV','KeyG','KeyB','KeyH','KeyN','KeyJ','KeyM','KeyL','Comma','Digit1','Period','KeyQ','Digit3','KeyW','KeyE','Digit4','KeyR','Digit5','KeyT','KeyY','Digit7','KeyU','Digit8','KeyI','KeyO','Digit0','KeyP'
 ];
 
 // Key mappings from keyboard to piano notes
@@ -49,6 +55,13 @@ class PianoApp {
         this.masterGainNode = null;
         this.highlightedKeys = new Set();
         this.currentProgression = null;
+        this.piano = null; // legacy reference (unused now)
+        this.activeSampleNotes = new Set();
+        this.sampler = null; // Tone.Sampler like index2
+        this.reverb = null;
+        this.sustainActive = false;
+        this.visibleNotes = []; // windowed notes currently rendered
+        this.visibleKeyToNote = {}; // dynamic keyboard mapping
         
         this.initAudio();
         this.setupEventListeners();
@@ -67,6 +80,52 @@ class PianoApp {
             this.masterGainNode.gain.setValueAtTime(this.masterVolume, this.audioContext.currentTime);
             this.masterGainNode.connect(this.audioContext.destination);
             
+            // Initialize Tone.Sampler with Salamander URLs (as in index2)
+            if (window.Tone) {
+                try {
+                    this.sampler = new window.Tone.Sampler({
+                        urls: {
+                            A0: "A0.mp3",
+                            C1: "C1.mp3",
+                            "D#1": "Ds1.mp3",
+                            "F#1": "Fs1.mp3",
+                            A1: "A1.mp3",
+                            C2: "C2.mp3",
+                            "D#2": "Ds2.mp3",
+                            "F#2": "Fs2.mp3",
+                            A2: "A2.mp3",
+                            C3: "C3.mp3",
+                            "D#3": "Ds3.mp3",
+                            "F#3": "Fs3.mp3",
+                            A3: "A3.mp3",
+                            C4: "C4.mp3",
+                            "D#4": "Ds4.mp3",
+                            "F#4": "Fs4.mp3",
+                            A4: "A4.mp3",
+                            C5: "C5.mp3",
+                            "D#5": "Ds5.mp3",
+                            "F#5": "Fs5.mp3",
+                            A5: "A5.mp3",
+                            C6: "C6.mp3",
+                            "D#6": "Ds6.mp3",
+                            "F#6": "Fs6.mp3",
+                            A6: "A6.mp3",
+                            C7: "C7.mp3"
+                        },
+                        release: 1.2,
+                        attack: 0.002,
+                        baseUrl: "https://tonejs.github.io/audio/salamander/"
+                    });
+                    this.reverb = new window.Tone.Reverb({ decay: 2.8, wet: 0.25, preDelay: 0.02 });
+                    this.sampler.connect(this.reverb);
+                    this.reverb.toDestination();
+                    await this.sampler.loaded;
+                    this.updateOutputVolume();
+                    this.showNotification('Salamander Grand loaded', 'info', 2000);
+                } catch (e) {
+                    console.warn('Failed to load Tone.Sampler Salamander. Falling back to synth.', e);
+                }
+            }
         } catch (error) {
             console.error('Web Audio API not supported:', error);
             this.showError('Your browser does not support Web Audio API. Please use a modern browser.');
@@ -93,9 +152,7 @@ class PianoApp {
         const volumeDisplay = document.getElementById('volume-display');
         volumeSlider.addEventListener('input', (e) => {
             this.masterVolume = e.target.value / 100;
-            if (this.masterGainNode) {
-                this.masterGainNode.gain.setValueAtTime(this.masterVolume, this.audioContext.currentTime);
-            }
+            this.updateOutputVolume();
             volumeDisplay.textContent = `${e.target.value}%`;
         });
         
@@ -264,14 +321,26 @@ class PianoApp {
         const container = document.getElementById('piano-container');
         container.innerHTML = '';
         
-        const whiteKeys = PIANO_NOTES_IN_ORDER.filter(note => !note.includes('#'));
+        // Compute a window from C(oct) through G(oct+2)
+        const baseOctave = 4 + this.octaveShift; // center around C4 by default
+        const startNote = `C${Math.max(2, Math.min(6, baseOctave))}`;
+        const endNote = `G${Math.max(3, Math.min(7, baseOctave + 2))}`;
+
+        const startIndex = PIANO_NOTES_IN_ORDER.indexOf(startNote);
+        const endIndex = PIANO_NOTES_IN_ORDER.indexOf(endNote);
+        const windowNotes = PIANO_NOTES_IN_ORDER.slice(startIndex, endIndex + 1);
+        this.visibleNotes = windowNotes;
+
+        // Build dynamic key mapping left-to-right
+        this.visibleKeyToNote = {};
+        const whiteKeys = windowNotes.filter(n => !n.includes('#'));
         const containerWidth = container.clientWidth - 20; // Account for padding
         const whiteKeyWidth = containerWidth / whiteKeys.length;
         const blackKeyWidth = whiteKeyWidth * 0.65;
         
         let whiteKeyIndex = 0;
         
-        PIANO_NOTES_IN_ORDER.forEach(note => {
+        windowNotes.forEach((note, idx) => {
             const isBlack = note.includes('#');
             const keyElement = document.createElement('div');
             keyElement.className = `piano-key ${isBlack ? 'black-key' : 'white-key'}`;
@@ -281,6 +350,9 @@ class PianoApp {
                 // White key positioning
                 keyElement.style.left = `${10 + whiteKeyIndex * whiteKeyWidth}px`;
                 keyElement.style.width = `${whiteKeyWidth - 1}px`;
+                // Assign keyboard label from order
+                const keyCode = KEY_ORDER_LEFT_TO_RIGHT.filter(k => !['KeyS','KeyD','KeyG','KeyH','KeyJ','KeyL','Digit1','Digit3','Digit4','Digit5','Digit7','Digit8','Digit0'].includes(k))[whiteKeyIndex] || null;
+                if (keyCode) this.visibleKeyToNote[keyCode] = note;
                 whiteKeyIndex++;
                 
                 // Add octave label for C notes
@@ -295,10 +367,15 @@ class PianoApp {
                 const prevWhiteKeyX = 10 + (whiteKeyIndex - 1) * whiteKeyWidth;
                 keyElement.style.left = `${prevWhiteKeyX + whiteKeyWidth - blackKeyWidth / 2}px`;
                 keyElement.style.width = `${blackKeyWidth}px`;
+                // Assign nearest black-key code in sequence
+                const blackCodes = ['KeyS','KeyD','KeyG','KeyH','KeyJ','KeyL','Digit1','Digit3','Digit4','Digit5','Digit7','Digit8','Digit0'];
+                const blackCountSoFar = windowNotes.slice(0, idx + 1).filter(n => n.includes('#')).length - 1;
+                const keyCode = blackCodes[blackCountSoFar] || null;
+                if (keyCode) this.visibleKeyToNote[keyCode] = note;
             }
             
             // Add keyboard label
-            const keyLabel = NOTE_TO_KEY_MAP[note];
+            const keyLabel = this.getKeyDisplayName(Object.keys(this.visibleKeyToNote).find(k => this.visibleKeyToNote[k] === note));
             if (keyLabel) {
                 const labelElement = document.createElement('div');
                 labelElement.className = 'key-label';
@@ -331,7 +408,12 @@ class PianoApp {
         
 
         
-        const note = KEY_TO_NOTE_MAP[event.code];
+        if (event.code === 'Space' && !this.sustainActive) {
+            this.sustainActive = true;
+            event.preventDefault();
+            return;
+        }
+        const note = this.visibleKeyToNote[event.code] || KEY_TO_NOTE_MAP[event.code];
         if (note && !this.pressedKeys.has(event.code)) {
             this.pressedKeys.add(event.code);
             this.playNote(note);
@@ -340,7 +422,14 @@ class PianoApp {
     }
 
     handleKeyUp(event) {
-        const note = KEY_TO_NOTE_MAP[event.code];
+        if (event.code === 'Space') {
+            this.sustainActive = false;
+            if (this.sampler && window.Tone) {
+                try { this.sampler.releaseAll(); } catch (e) {}
+            }
+            return;
+        }
+        const note = this.visibleKeyToNote[event.code] || KEY_TO_NOTE_MAP[event.code];
         if (note && this.pressedKeys.has(event.code)) {
             this.pressedKeys.delete(event.code);
             this.stopNote(note);
@@ -395,6 +484,18 @@ class PianoApp {
         
         if (this.activeOscillators.has(note)) {
             this.stopNote(note);
+        }
+        
+        // Prefer Tone.Sampler if available (index2 sound)
+        if (this.sampler) {
+            try {
+                window.Tone.start();
+            } catch (e) {}
+            if (!this.activeSampleNotes.has(shiftedNote)) {
+                this.sampler.triggerAttack(shiftedNote);
+                this.activeSampleNotes.add(shiftedNote);
+            }
+            return;
         }
         
 
@@ -503,6 +604,16 @@ class PianoApp {
     }
 
     stopNote(note) {
+        // Stop sampler note if active
+        const shiftedNote = this.shiftNote(note);
+        if (this.sampler && this.activeSampleNotes.has(shiftedNote)) {
+            if (!this.sustainActive) {
+                try { this.sampler.triggerRelease(shiftedNote); } catch (e) {}
+            }
+            this.activeSampleNotes.delete(shiftedNote);
+            return;
+        }
+
         if (this.activeOscillators.has(note)) {
             const { oscillators, masterGain } = this.activeOscillators.get(note);
             const now = this.audioContext.currentTime;
@@ -524,7 +635,7 @@ class PianoApp {
         const [, noteName, octave] = match;
         const newOctave = parseInt(octave) + this.octaveShift;
         
-        if (newOctave < 2 || newOctave > 6) {
+        if (newOctave < 2 || newOctave > 7) {
             return note; // Out of range
         }
         
@@ -532,38 +643,36 @@ class PianoApp {
     }
 
     noteToFrequency(note) {
-        const baseFrequencies = {
-            'C': 16.35, 'C#': 17.32, 'D': 18.35, 'D#': 19.45,
-            'E': 20.60, 'F': 21.83, 'F#': 23.12, 'G': 24.50,
-            'G#': 25.96, 'A': 27.50, 'A#': 29.14, 'B': 30.87
-        };
-        
         const match = note.match(/([A-G]#?)(\d)/);
-        if (!match) return 440; // Default to A4
-        
-        const [, noteName, octave] = match;
-        const baseFreq = baseFrequencies[noteName];
-        
-        return baseFreq * Math.pow(2, parseInt(octave));
+        if (!match) return 440;
+        const [, noteName, octaveStr] = match;
+        // Use equal temperament relative to A4 = 440Hz
+        const semitoneIndex = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'].indexOf(noteName);
+        const octave = parseInt(octaveStr, 10);
+        const midi = (octave + 1) * 12 + semitoneIndex; // MIDI note number
+        const a4Midi = 69;
+        return 440 * Math.pow(2, (midi - a4Midi) / 12);
     }
 
     raiseOctave() {
-        const maxShift = 6 - parseInt(PIANO_NOTES_IN_ORDER[PIANO_NOTES_IN_ORDER.length - 1].slice(-1));
+        const maxShift = 1; // upper bound
         if (this.octaveShift < maxShift) {
             this.octaveShift++;
             this.updateOctaveLabel();
             this.showNotification(`Octave raised to ${this.octaveShift >= 0 ? '+' : ''}${this.octaveShift}`);
+            this.renderPiano();
         } else {
             this.showNotification('Cannot raise octave further', 'warning');
         }
     }
 
     lowerOctave() {
-        const minShift = 2 - parseInt(PIANO_NOTES_IN_ORDER[0].slice(-1));
+        const minShift = -1; // lower bound
         if (this.octaveShift > minShift) {
             this.octaveShift--;
             this.updateOctaveLabel();
             this.showNotification(`Octave lowered to ${this.octaveShift >= 0 ? '+' : ''}${this.octaveShift}`);
+            this.renderPiano();
         } else {
             this.showNotification('Cannot lower octave further', 'warning');
         }
@@ -572,7 +681,20 @@ class PianoApp {
     updateOctaveLabel() {
         const label = document.getElementById('octave-label');
         label.textContent = `Octave shift: ${this.octaveShift >= 0 ? '+' : ''}${this.octaveShift}`;
-        document.title = `Virtual Piano (C3-G5) - Press keys to play (Octave shift: ${this.octaveShift >= 0 ? '+' : ''}${this.octaveShift})`;
+        document.title = `Virtual Piano (C2-C7) - Press keys to play (Octave shift: ${this.octaveShift >= 0 ? '+' : ''}${this.octaveShift})`;
+    }
+
+    updateOutputVolume() {
+        if (this.masterGainNode && this.audioContext) {
+            this.masterGainNode.gain.setValueAtTime(this.masterVolume, this.audioContext.currentTime);
+        }
+        if (window.Tone && window.Tone.getDestination) {
+            try {
+                // Tone.js destination volume in dB
+                const db = 20 * Math.log10(Math.max(this.masterVolume, 0.0001));
+                window.Tone.getDestination().volume.value = db;
+            } catch (e) {}
+        }
     }
 
     getHarmonicLevels(octave) {
