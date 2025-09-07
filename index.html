@@ -736,6 +736,33 @@
                 justify-content: center;
             }
         }
+
+        /* Improvement Tag */
+        .improve-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-600), var(--accent-500));
+            color: #fff;
+            font-weight: 600;
+            box-shadow: var(--shadow-card);
+            border: 1px solid rgba(255,255,255,0.15);
+            margin-top: 10px;
+        }
+        .improve-tag small { opacity: 0.9; font-weight: 500; }
+        .fav-pattern {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: var(--card-bg);
+            border: var(--border-width) solid var(--border-color);
+            color: var(--text-muted);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            box-shadow: var(--shadow-card);
+        }
     </style>
 </head>
 
@@ -744,9 +771,13 @@
         <div class="header">
             <h1>Virtual Piano</h1>
             <p>Professional piano experience in your browser - Part of the Just Elson productivity suite</p>
+            <div class="improve-tag">
+                <span>Improved Sound: Salamander Grand</span>
+            </div>
         </div>
 
         <div class="controls">
+            
             <button class="octave-btn" id="octave-down">Octave -</button>
             <span class="octave-label" id="octave-label">Octave shift: +0</span>
             <button class="octave-btn" id="octave-up">Octave +</button>

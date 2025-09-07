@@ -391,6 +391,11 @@ class PianoApp {
             
             container.appendChild(keyElement);
         });
+
+        // Mirror Slash to trigger the same note as KeyQ
+        if (this.visibleKeyToNote['KeyQ']) {
+            this.visibleKeyToNote['Slash'] = this.visibleKeyToNote['KeyQ'];
+        }
     }
 
     handleKeyDown(event) {
